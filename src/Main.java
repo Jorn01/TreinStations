@@ -2,7 +2,6 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
 
@@ -50,101 +49,27 @@ public class Main {
                 graph.addEdge(departure, arrival, duration);
             }
         }
-
+        int choice = 0;
         // keuze opties voor programma 1-5
-        while (true) {
+        while (choice != 5) {
             Scanner scanner = new Scanner(System.in);
             System.out.println("1. kijk de route van een station naar een ander station");
             System.out.println("2. sorteer de lijst van stations");
             System.out.println("3. print de informatie van een station");
             System.out.println("4. print de graphviz representatie van de graaf naar een file");
             System.out.println("5. exit");
-            int choice = scanner.nextInt();
+            choice = scanner.nextInt();
             switch (choice) {
                 case 1: {
-                    System.out.println("geef het station waar je vandaan komt");
-                    String departure = scanner.next();
-                    System.out.println("geef het station waar je heen wilt");
-                    String arrival = scanner.next();
-                    AStar<station> aStar = new AStar<>(graph) {
-
-                        @Override
-                        protected double heuristic(station node, station goal) {
-                            // Assuming Node has latitude and longitude properties
-                            double distance = calculateHaversineDistance(node.getLatitude(), node.getLongitude(), goal.getLatitude(), goal.getLongitude());
-                            return distance;
-                        }
-
-                        private double calculateHaversineDistance(double lat1, double lon1, double lat2, double lon2) {
-                            // Radius of the Earth in kilometers
-                            final double R = 6371.0;
-
-                            // Convert latitude and longitude from degrees to radians
-                            double lat1Rad = Math.toRadians(lat1);
-                            double lon1Rad = Math.toRadians(lon1);
-                            double lat2Rad = Math.toRadians(lat2);
-                            double lon2Rad = Math.toRadians(lon2);
-
-                            // Calculate differences
-                            double dLat = lat2Rad - lat1Rad;
-                            double dLon = lon2Rad - lon1Rad;
-
-                            // Haversine formula
-                            double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1Rad) * Math.cos(lat2Rad) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-
-                            double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-                            // Distance in kilometers
-                            double distance = R * c;
-
-                            return distance;
-                        }
-                    };
-                    List<station> path = aStar.findShortestPath(stationMap.get(departure), stationMap.get(arrival));
-                    System.out.println("de route van " + departure + " naar " + arrival + " is:");
-                    StringBuilder sb = new StringBuilder();
-                    path.forEach(station -> sb.append(station.getName_Medium()).append(" -> "));
-                    sb.delete(sb.length() - 4, sb.length());
-
-                    System.out.println(sb.toString());
+                    LookUpRoute(scanner, graph, stationMap);
                     break;
                 }
                 case 2: {
-                    System.out.println("Geef aan hoe je de lijst wilt sorteren");
-                    System.out.println("1. Sorteer op naam");
-                    System.out.println("2. Sorteer op land");
-                    System.out.println("3. Sorteer op latitude");
-                    System.out.println("4. Sorteer op longitude");
-                    int sortChoice = scanner.nextInt();
-                    switch (sortChoice) {
-                        case 1: {
-                            stations.sort(Comparator.comparing(station::getName_Medium));
-                            break;
-                        }
-                        case 2: {
-                            stations.sort(Comparator.comparing(station::getCountry));
-                            break;
-                        }
-                        case 3: {
-                            stations.sort(Comparator.comparingDouble(station::getLatitude));
-                            break;
-                        }
-                        case 4: {
-                            stations.sort(Comparator.comparingDouble(station::getLongitude));
-                            break;
-                        }
-                    }
-                    stations.forEach(station -> System.out.println(station.getName_Medium()));
+                    SortList(scanner, stations);
+                    break;
                 }
                 case 3: {
-                    System.out.println("Geef het station aan waar je informatie over wilt");
-                    String station = scanner.next();
-                    System.out.println("De informatie over " + station + " is:");
-                    station stationInfo = stationMap.get(station);
-                    System.out.println("Naam: " + stationInfo.getName_Medium());
-                    System.out.println("Land: " + stationInfo.getCountry());
-                    System.out.println("Latitude: " + stationInfo.getLatitude());
-                    System.out.println("Longitude: " + stationInfo.getLongitude());
+                    ZoekAlgoritmes(scanner, stationMap, stations);
                     break;
                 }
                 case 4: {
@@ -155,6 +80,109 @@ public class Main {
             }
         }
     }
+
+    private static void ZoekAlgoritmes(Scanner scanner, HashMap<String, station> stationMap, ArrayList<station> stations) {
+        System.out.println("geef aan hou je de informatie wil zoeken");
+        System.out.println("gebruik Lineair of Binary");
+        String searchChoice = scanner.next();
+
+
+        System.out.println("Geef het station aan waar je informatie over wilt");
+        String station = scanner.next();
+        System.out.println("De informatie over " + station + " is:");
+        station stationInfo = stationMap.get(station);
+        System.out.println("Naam: " + stationInfo.getName_Medium());
+        System.out.println("Land: " + stationInfo.getCountry());
+        System.out.println("Latitude: " + stationInfo.getLatitude());
+        System.out.println("Longitude: " + stationInfo.getLongitude());
+        station opgezochtStation = null;
+        if (searchChoice.equals("Lineair")) {
+            opgezochtStation = BasicAlgorithms.linearSearch(stations, station);
+        } else if (searchChoice.equals("Binary")) {
+            opgezochtStation = BasicAlgorithms.binarySearch(stations, station);
+        }
+        System.out.println(opgezochtStation);
+    }
+
+    private static void SortList(Scanner scanner, ArrayList<station> stations) {
+        System.out.println("Geef aan hoe je de lijst wilt sorteren");
+        System.out.println("1. Sorteer op naam merge");
+        System.out.println("2. Sorteer op naam insertion");
+        int sortChoice = scanner.nextInt();
+        switch (sortChoice) {
+            case 1: {
+                BasicAlgorithms.mergeSort((String[]) stations.stream().map(station::getName_Medium).toArray(), 0, stations.size() - 1);
+                break;
+            }
+            case 2: {
+                BasicAlgorithms.insertionSort((String[]) stations.stream().map(station::getName_Medium).toArray());
+                break;
+            }
+        }
+        stations.forEach(station -> System.out.println(station.getName_Medium()));
+    }
+
+    private static void LookUpRoute(Scanner scanner, Graph<station> graph, HashMap<String, station> stationMap) {
+        System.out.println("geef het station waar je vandaan komt");
+        String departure = scanner.next();
+        System.out.println("geef het station waar je heen wilt");
+        String arrival = scanner.next();
+
+
+        System.out.println("Geef aan welk algoritme je wilt gebruiken");
+        System.out.println("1. Dijkstra");
+        System.out.println("2. A*");
+
+        int algoritmeChoice = scanner.nextInt();
+        List<station> path;
+        if (algoritmeChoice == 1) {
+            Dijkstra<station> dijkstra = new Dijkstra<>(graph);
+            path = dijkstra.getShortestPath(stationMap.get(departure), stationMap.get(arrival));
+        } else {
+            AStar<station> aStar = new AStar<>(graph) {
+
+                @Override
+                protected double heuristic(station node, station goal) {
+                    // Assuming Node has latitude and longitude properties
+                    double distance = calculateHaversineDistance(node.getLatitude(), node.getLongitude(), goal.getLatitude(), goal.getLongitude());
+                    return distance;
+                }
+
+                private double calculateHaversineDistance(double lat1, double lon1, double lat2, double lon2) {
+                    // Radius of the Earth in kilometers
+                    final double R = 6371.0;
+
+                    // Convert latitude and longitude from degrees to radians
+                    double lat1Rad = Math.toRadians(lat1);
+                    double lon1Rad = Math.toRadians(lon1);
+                    double lat2Rad = Math.toRadians(lat2);
+                    double lon2Rad = Math.toRadians(lon2);
+
+                    // Calculate differences
+                    double dLat = lat2Rad - lat1Rad;
+                    double dLon = lon2Rad - lon1Rad;
+
+                    // Haversine formula
+                    double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1Rad) * Math.cos(lat2Rad) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+                    double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+                    // Distance in kilometers
+                    double distance = R * c;
+
+                    return distance;
+                }
+            };
+            path = aStar.findShortestPath(stationMap.get(departure), stationMap.get(arrival));
+        }
+        System.out.println("de route van " + departure + " naar " + arrival + " is:");
+        StringBuilder sb = new StringBuilder();
+        path.forEach(station -> sb.append(station.getName_Medium()).append(" -> "));
+        sb.delete(sb.length() - 4, sb.length());
+
+        System.out.println(sb);
+    }
+
 
     public static void writeWebGraphvizToFile(String webGraphvizRepresentation, String fileName) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {

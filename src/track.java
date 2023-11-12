@@ -35,6 +35,6 @@ public class track {
 
     @Override
     public String toString() {
-        return "track{" + "departure='" + departure + '\'' + ", arrival='" + arrival + '\'' + ", duration=" + duration + '}';
+        return "track{" + "departure='" + getDeparture() + '\'' + ", arrival='" + getArrival() + '\'' + ", duration=" + getDuration() + '}';
     }
 }

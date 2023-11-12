@@ -56,11 +56,11 @@ public class station {
     public String toString() {
         return "station{" +
                 "id=" + id +
-                ", code='" + code + '\'' +
-                ", name_Medium='" + name_Medium + '\'' +
-                ", country='" + country + '\'' +
-                ", latitude=" + latitude +
-                ", longitude=" + longitude +
+                ", code='" + getCode() + '\'' +
+                ", name_Medium='" + getName_Medium() + '\'' +
+                ", country='" + getCountry() + '\'' +
+                ", latitude=" + getLatitude() +
+                ", longitude=" + getLongitude() +
                 '}';
     }
 }
